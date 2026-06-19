@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Special Elite', monospace;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.01), transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            transform: translate(-50%, -50%);
+            transition: left 0.4s ease, top 0.4s ease;
+        }
+
+        .glitch-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .glitch-lines.active {
+            opacity: 1;
+        }
+
+        .glitch-line {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: rgba(160, 0, 0, 0.5);
+            animation: glitchLine 3s linear infinite;
+        }
+
+        @keyframes glitchLine {
+            0% { transform: translateY(-100vh); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        .red-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(100, 0, 0, 0.25);
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.05s;
+        }
+
+        .red-flash.flash {
+            opacity: 1;
+        }
+
+        /* ===== Pages ===== */
+        .page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: opacity 1.2s ease, transform 1.2s ease;
+            z-index: 1;
+        }
+
+        .page.out {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .page.in {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.03);
+        }
+
+        .page.in.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: scale(1);
+        }
+
+        /* ===== Page 1 ===== */
+        .page1-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .page1-content h1 {
+            font-family: 'Special Elite', monospace;
+            font-size: clamp(1.4rem, 5vw, 2rem);
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 60px;
+            letter-spacing: 2px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .secret-input {
+            width: 240px;
+            padding: 14px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            color: #fff;
+            font-family: 'Special Elite', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 16px;
+            outline: none;
+            caret-color: rgba(200, 0, 0, 0.5);
+            transition: border-color 0.5s ease;
+            appearance: textfield;
+        }
+
+        .secret-input::-webkit-outer-spin-button,
+        .secret-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .secret-input::placeholder {
+            color: rgba(255, 255, 255, 0.03);
+            letter-spacing: 6px;
+            font-size: 0.9rem;
+        }
+
+        .secret-input:focus {
+            border-bottom-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .secret-input.wrong {
+            animation: inputShake 0.5s ease;
+            border-bottom-color: rgba(160, 0, 0, 0.7);
+        }
+
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-14px); }
+            20% { transform: translateX(12px); }
+            30% { transform: translateX(-10px); }
+            40% { transform: translateX(8px); }
+            50% { transform: translateX(-5px); }
+            60% { transform: translateX(3px); }
+        }
+
+        .ok-btn {
+            padding: 11px 48px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            color: rgba(255, 255, 255, 0.1);
+            font-family: 'Special Elite', monospace;
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: 8px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .ok-btn:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .ok-btn:active {
+            transform: scale(0.96);
+        }
+
+        .error-msg {
+            margin-top: 35px;
+            font-size: 0.7rem;
+            color: rgba(160, 0, 0, 0);
+            letter-spacing: 5px;
+            transition: color 0.5s;
+            height: 18px;
+        }
+
+        .error-msg.show {
+            color: rgba(160, 0, 0, 0.55);
+        }
+
+        .attempts {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.55rem;
+            color: rgba(255, 255, 255, 0.02);
+            letter-spacing: 5px;
+            z-index: 200;
+            transition: color 0.5s, opacity 0.5s;
+        }
+
+        .attempts.visible {
+            color: rgba(160, 0, 0, 0.2);
+        }
+
+        /* ===== Page 2 ===== */
+        .page2-content {
+            text-align: center;
+            max-width: 580px;
+            padding: 30px 25px;
+            width: 100%;
+        }
+
+        .page2-content p {
+            font-family: 'Special Elite', monospace;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            font-weight: 400;
+            text-align: center;
+            line-height: 2;
+            margin-bottom: 50px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 2s ease, transform 2s ease;
+            letter-spacing: 0.5px;
+            padding: 0 12px;
+        }
+
+        .page2-content p.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .msg-white {
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .msg-red {
+            color: rgba(160, 0, 0, 0.6);
+            margin-bottom: 0;
+        }
+
+        .secret-divider {
+            width: 35px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            margin: 0 auto 50px;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .secret-divider.visible {
+            opacity: 1;
+        }
+
+        .secret-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 500px) {
+            .secret-input {
+                width: 200px;
+                letter-spacing: 12px;
+                font-size: 1.3rem;
+            }
+            .page1-content h1 {
+                margin-bottom: 45px;
+            }
+            .page2-content p {
+                margin-bottom: 40px;
+            }
+            .secret-divider {
+                margin-bottom: 40px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cursor-glow" id="cursorGlow"></div>
+    <div class="red-flash" id="redFlash"></div>
+
+    <div class="glitch-lines" id="glitchLines">
+        <div class="glitch-line" style="top:0; animation-delay:0s;"></div>
+        <div class="glitch-line" style="top:0; animation-delay:0.7s;"></div>
+        <div class="glitch-line" style="top:0; animation-delay:1.4s;"></div>
+        <div class="glitch-line" style="top:0; animation-delay:2.1s;"></div>
+    </div>
+
+    <!-- Page 1 -->
+    <div class="page" id="page1">
+        <div class="page1-content">
+            <h1>Hi Eddie, write here.</h1>
+            <div class="input-wrapper">
+                <input
+                    type="number"
+                    class="secret-input"
+                    id="secretInput"
+                    placeholder="...."
+                    maxlength="4"
+                    autocomplete="off"
+                    autofocus
+                >
+            </div>
+            <button class="ok-btn" onclick="checkCode()">OK</button>
+            <div class="error-msg" id="errorMsg">Denied</div>
+        </div>
+    </div>
+
+    <!-- Page 2 -->
+    <div class="page in" id="page2">
+        <canvas class="secret-particles" id="particlesCanvas"></canvas>
+        <div class="page2-content">
+            <p class="msg-white" id="msg1">Michael must not find out anything about this site.</p>
+            <div class="secret-divider" id="div1"></div>
+            <p class="msg-red" id="msg2">Hi Eddie, you don't know Michael? He's Matt's dad.</p>
+        </div>
+    </div>
+
+    <div class="attempts" id="attempts"></div>
+
+    <script>
+        var attempts = 0;
+        var particlesStarted = false;
+        var input = document.getElementById('secretInput');
+        var flash = document.getElementById('redFlash');
+        var glitchLines = document.getElementById('glitchLines');
+        var errorMsg = document.getElementById('errorMsg');
+        var attemptsEl = document.getElementById('attempts');
+
+        input.addEventListener('input', function() {
+            input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+            errorMsg.classList.remove('show');
+            input.classList.remove('wrong');
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            var glow = document.getElementById('cursorGlow');
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                checkCode();
+            }
+        });
+
+        function checkCode() {
+            if (input.value.trim() === '7609') {
+                unlock();
+            } else {
+                fail();
+            }
+        }
+
+        function fail() {
+            attempts++;
+            input.classList.add('wrong');
+            errorMsg.classList.add('show');
+            glitchLines.classList.add('active');
+
+            flash.classList.add('flash');
+            setTimeout(function() { flash.classList.remove('flash'); }, 80);
+            setTimeout(function() {
+                flash.classList.add('flash');
+                setTimeout(function() { flash.classList.remove('flash'); }, 50);
+            }, 150);
+
+            if (attempts > 1) {
+                attemptsEl.textContent = attempts + ' attempts';
+                attemptsEl.classList.add('visible');
+            }
+
+            setTimeout(function() { glitchLines.classList.remove('active'); }, 2000);
+            setTimeout(function() {
+                input.value = '';
+                input.classList.remove('wrong');
+            }, 600);
+        }
+
+        function unlock() {
+            document.getElementById('page1').classList.add('out');
+            attemptsEl.style.opacity = '0';
+
+            setTimeout(function() {
+                document.getElementById('page2').classList.add('active');
+
+                if (!particlesStarted) {
+                    initParticles();
+                    particlesStarted = true;
+                }
+
+                setTimeout(function() { document.getElementById('msg1').classList.add('visible'); }, 1000);
+                setTimeout(function() { document.getElementById('div1').classList.add('visible'); }, 3000);
+                setTimeout(function() { document.getElementById('msg2').classList.add('visible'); }, 4500);
+            }, 1200);
+        }
+
+        function initParticles() {
+            var canvas = document.getElementById('particlesCanvas');
+            var ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            var particles = [];
+            for (var i = 0; i < 40; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.15,
+                    vy: (Math.random() - 0.5) * 0.15 - 0.1,
+                    size: Math.random() * 1 + 0.3,
+                    alpha: Math.random() * 0.08 + 0.015,
+                    pulse: Math.random() * Math.PI * 2
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (var i = 0; i < particles.length; i++) {
+                    var p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.pulse += 0.012;
+
+                    if (p.y < -10) {
+                        p.y = canvas.height + 10;
+                        p.x = Math.random() * canvas.width;
+                    }
+                    if (p.x < -10) p.x = canvas.width + 10;
+                    if (p.x > canvas.width + 10) p.x = -10;
+
+                    var a = p.alpha * (0.5 + 0.5 * Math.sin(p.pulse));
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, ' + a + ')';
+                    ctx.fill();
+                }
+
+                for (var i = 0; i < particles.length; i++) {
+                    for (var j = i + 1; j < particles.length; j++) {
+                        var dx = particles[i].x - particles[j].x;
+                        var dy = particles[i].y - particles[j].y;
+                        var dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 110) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            var lineAlpha = 0.012 * (1 - dist / 110);
+                            ctx.strokeStyle = 'rgba(255, 255, 255, ' + lineAlpha + ')';
+                            ctx.lineWidth = 0.4;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+
+            window.addEventListener('resize', function() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+    </script>
+</body>
+</html>
